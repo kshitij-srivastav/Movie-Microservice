@@ -1,5 +1,7 @@
 package com.MovieRatingMicroservice.Movie.Rating.Services.impl;
 
+import com.MovieRatingMicroservice.Movie.Rating.Exceptions.NotFoundException;
+import com.MovieRatingMicroservice.Movie.Rating.Exceptions.ValidationException;
 import com.MovieRatingMicroservice.Movie.Rating.Repository.MoviesRepository;
 import com.MovieRatingMicroservice.Movie.Rating.Services.MovieService;
 import com.MovieRatingMicroservice.Movie.Rating.models.Movies;
@@ -18,10 +20,17 @@ public class MovieServiceImpl implements MovieService {
     }
     @Override
     public List<Movies> getMoviesByRating(int minRating, int page, int pageSize) {
-        // Retrieve movies from the database using the repository
+        if (minRating < 0) {
+            throw new ValidationException("Minimum rating must be greater than or equal to 0");
+        }
+
         List<Movies> filteredMovies = moviesRepository.findByRatingGreaterThanEqual(minRating);
 
-        // Implement pagination
+        if (filteredMovies.isEmpty()) {
+            throw new NotFoundException("No movies found with the given rating");
+        }
+
+        // Implement pagination with the adjusted page size
         int startIndex = (page - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, filteredMovies.size());
 
